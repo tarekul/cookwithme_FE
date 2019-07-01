@@ -53,15 +53,86 @@ const getFood2Fork = async(query) => {
         // baseURL: `https://www.food2fork.com/api/search?key=ee476d8f542bef2e97d8bf30c7f3c0ca&q=${query}`,
 // baseURL: `https://www.food2fork.com/api/search?key=9e56004d7a3bc861088111ea75a9a429&q=${query}`
         // baseURL: `https://www.food2fork.com/api/search?key=a8839d03739298aec777e6819a1184c8&q=${query}`,
-        baseURL: `https://www.food2fork.com/api/search?key=aa4e7ae20e1849bc4ab7eb553db7d984&q=${query}`
+        baseURL: `https://www.food2fork.com/api/search?key=0a689ee4c676e04aaae774935df0e3d8&q=${query}`
     })
-      .then((res)=>{
+      .then( res =>{
         recipes_arr = res.data.recipes.filter(e=>{
-          return  e.publisher === "The Pioneer Woman" || e.publisher === 'All Recipes' || e.publisher === 'Food Network'
-      })
-      recipes_arr.splice(2,1)
-      recipes_arr.splice(8,1)
-      return recipes_arr.slice(0,15)
+          return e.publisher === "The Pioneer Woman" || e.publisher === 'All Recipes' || e.publisher === 'Food Network'
+        })
+        //recipes_arr.splice(2,1)
+        //recipes_arr.splice(8,1)
+        
+        // 15 recipe obj in arr
+        const arr = recipes_arr.slice(0,15)
+
+        // find recipe obj that have subpar pic
+        //const qualityArr = []
+        // const subparArr = [] 
+        // arr.forEach( e =>{
+        //   //const img = new Image();
+        //   //img.src = e.image_url
+        //   subparArr.push(e)
+        //   // img.onload = function(){
+        //   //   console.log(this.width, this.height);
+
+        //   //   if (this.width * this.height < 70000){
+        //   //     console.log('here1')
+        //   //     subparArr.push(e)
+        //   //   } else {
+        //   //     qualityArr.push(e)
+        //   //   }
+        //   // }
+        // })
+
+        // update subpar pic
+        const promises = [];
+        for(let recipe of arr){
+          const promise = axios.get(`https://pixabay.com/api/?key=12794199-b15ba844ff6bf9d5d0013b05e&q=${recipe.title}&image_type=photo&pretty=true`)
+          promises.push(promise);
+        }
+
+        return Promise.all(promises)
+          .then(A =>{
+            for(let i = 0; i < A.length; i++){
+              const imgArr = A[i].data.hits;
+              if(imgArr.length){
+                if(imgArr.length > 1) arr[i].image_url = imgArr[1].largeImageURL;
+                else arr[i].image_url = imgArr[0].largeImageURL;
+              }
+            }
+          })
+          .then( _ =>{
+            return arr
+          })
+          .catch(err =>{
+            console.log('get better image error! ', err);
+          })
+       
+        // return same arr with 15 recipe obj
+          
+
+        // const new_arr = arr.map( e =>{
+        //   const img = new Image()
+        //   img.src = e.image_url  //recipe image 
+        //   return img.onload = function(){
+        //     console.log(this.width,this.height) //image height width
+        //     if(parseInt(this.width) * parseInt(this.height) < 70000){ 
+        //       return axios.get(`https://pixabay.com/api/?key=12794199-b15ba844ff6bf9d5d0013b05e&q=${e.title}&image_type=photo&pretty=true`)
+        //       .then(res=>{
+        //         console.log(res.data.hits.length)
+        //         if(res.data.hits.length > 0){
+        //           console.log(res.data.hits[0].largeImageURL)
+        //           e.image_url = res.data.hits[0].largeImageURL
+        //           console.log(e)
+        //           return e
+        //         } 
+        //       })
+        //     }
+        //     return e
+        //   }
+        // })
+        // console.log(new_arr)
+        // return new_arr
       })));
 }
 
